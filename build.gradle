@@ -1,0 +1,70 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'java-library-distribution'
+
+version = '0.53.g'
+
+jar {
+	archiveName = 'Megastage.jar'
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version, 'Main-Class': 'org.megastage.client.Main'
+		
+    }
+}
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+
+sourceSets{
+	assets{
+		resources.srcDir 'assets'
+	}
+}
+
+task assetsJar(type:Jar){
+	archiveName 'assets.jar'
+	from(sourceSets.assets.resources)
+}
+
+
+distributions{
+	main{
+		contents{
+			into('lib'){
+				from{ assetsJar}
+			}
+			from{'world2.xml'}
+			from('media/'){
+				into{'media'}
+			}
+
+		}
+	}
+}
+
+repositories {
+    mavenCentral()
+	flatDir {
+		dirs 'lib'
+	}
+}
+
+dependencies {
+	compile name:'ShaderBlow'
+	compile name:'Lemur'
+	compile name:'Cubes'
+	runtime name:'cubes-assets'
+	runtime name:'xmlpull-xpp3'
+	
+	compile 'org.jdom:jdom2:2.0.5'
+	compile 'com.roundtriangles.games:gdx-artemis:0.4'
+	compile 'com.esotericsoftware.kryo:kryo:2.20'
+	compile 'com.esotericsoftware:jsonbeans:0.7'
+
+	runtime 'org.slf4j:slf4j-api:1.7.5'
+	runtime 'com.googlecode:minlog:1.2'
+	runtime 'com.google.guava:guava:12.0'
+	compile ("org.cogchar:ext.bundle.opengl.jmonkey:1.0.9.1"){
+		exclude module:'xmlpull-xpp3'
+	}
+}
