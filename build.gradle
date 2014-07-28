@@ -34,6 +34,7 @@ distributions{
 				from{ assetsJar}
 			}
 			from{'world2.xml'}
+			from{'world.xml'}
 			from('media/'){
 				into{'media'}
 			}
@@ -62,7 +63,6 @@ dependencies {
 	compile 'com.esotericsoftware:jsonbeans:0.7'
 
 	runtime 'org.slf4j:slf4j-api:1.7.5'
-	runtime 'com.googlecode:minlog:1.2'
 	runtime 'com.google.guava:guava:12.0'
 	compile ("org.cogchar:ext.bundle.opengl.jmonkey:1.0.9.1"){
 		exclude module:'xmlpull-xpp3'
