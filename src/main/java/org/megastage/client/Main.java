@@ -25,6 +25,9 @@ import com.jme3.texture.TextureCubeMap;
 import com.jme3.ui.Picture;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.Styles;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 import org.megastage.client.controls.BackgroundRotationControl;
 import org.megastage.client.controls.GlobalRotationControl;
 import org.megastage.util.CmdLineParser;
@@ -33,26 +36,40 @@ public class Main extends SimpleApplication {
 
     public static void main(String[] args) {
         CmdLineParser cmd = new CmdLineParser(args);
-        ClientGlobals.serverHost = cmd.getString("-server", "srv.megastage.org");
-        ClientGlobals.player = cmd.getString("-nick", "");
+        Log.set(cmd.getInteger("--log-level", Log.LEVEL_INFO));
+
+        ClientGlobals.serverHost = cmd.getString("--server", "srv.megastage.org");
+        ClientGlobals.player = cmd.getString("--player", "");
         
-        Log.set(cmd.getInteger("-log-level", Log.LEVEL_INFO));
-        ClientGlobals.gfxSettings = GraphicsSettings.valueOf(cmd.getString("-gfx", "HIGH"));
+        ClientGlobals.gfxSettings = GraphicsSettings.valueOf(cmd.getString("--gfx", "HIGH"));
         
+        ClientGlobals.app = new Main();        
+        ClientGlobals.app.setSettings(getAppSettings());
+        ClientGlobals.app.showSettings = ClientGlobals.gfxSettings.SHOW_SETTINGS;
+        ClientGlobals.app.start();
+    }
+
+    public static AppSettings getAppSettings() {
         AppSettings settings = new AppSettings(true);
+
+        try {
+            BufferedImage[] icons = new BufferedImage[] {
+                ImageIO.read(Main.class.getResource("icon128.png")),
+                ImageIO.read(Main.class.getResource("icon64.png")),
+                ImageIO.read(Main.class.getResource("icon16.png"))
+            };
+            settings.setIcons(icons);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
         settings.setSettingsDialogImage("org/megastage/flash.jpg");
         settings.setTitle("Megastage");
         settings.setFullscreen(ClientGlobals.gfxSettings.FULL_SCREEN);
         settings.setResolution(ClientGlobals.gfxSettings.SCREEN_WIDTH, ClientGlobals.gfxSettings.SCREEN_HEIGHT);
-        Main app = new Main();
 
-        ClientGlobals.app = app;
-        app.setSettings(settings);
-        app.showSettings = ClientGlobals.gfxSettings.SHOW_SETTINGS;
-        app.start();
+        return settings;
     }
-
-    // private PlanetAppState planetAppState;
     
     public Main() {
         super((AppState) null);
@@ -60,14 +77,13 @@ public class Main extends SimpleApplication {
     
     @Override
     public void simpleInitApp() {
+        ClientGlobals.inputManager = inputManager;
+        
         SoundManager.init(assetManager);
         ExplosionNode.initialize(assetManager);
 
         setPauseOnLostFocus(false);
         
-        ClientGlobals.cmdHandler = new CommandHandler();
-        ClientGlobals.cmdHandler.registerWithInput(inputManager);
-
         initializeSystemNodes();
         initializeBackground();
         initializeCamera();

@@ -162,23 +162,30 @@ public class World {
     public void deleteEntity(int eid) {
         assert !free[eid]: "No entity " + eid;
         
-        size--;
+        // give components possibility to cleanup
+        for(BaseComponent bc = compIter(eid); bc != null; bc = compNext()) {
+            bc.delete(eid);
+        }
 
-        // remove from allocated list
+        // remove all the references
+        for(BaseComponent bc = compIter(eid); bc != null; bc = compNext()) {
+            population[eid][compIterPos] = null;
+            population[eid][CompType.parent[compIterPos]] = null;
+        }
+
+        // remove eid from allocated list
         prev[next[eid]] = prev[eid];
         next[prev[eid]] = next[eid];
         free[eid] = true;
         
-        // add to free list
+        // add eid to free list
         next[eid] = 1;
         prev[eid] = prev[1];
         next[prev[1]] = eid;
         prev[1] = eid;
         
-        for(BaseComponent bc = compIter(eid); bc != null; bc = compNext()) {
-            bc.delete(eid);
-            population[eid][compIterPos] = null;
-        }
+        size--;
+
         updateEntityInAllGroups(eid);
     }
 
@@ -203,6 +210,8 @@ public class World {
     public void removeComponent(int eid, int cid) {
         assert !free[eid]: "No entity " + eid;
 
+        population[eid][cid].delete(eid);
+
         population[eid][cid] = null;
         population[eid][CompType.parent[cid]] = null;
         
@@ -210,8 +219,10 @@ public class World {
     }
 
     public BaseComponent getComponent(int eid, int cid) {
-        ensureEntity(eid);
-        return population[eid][cid];
+        if(hasEntity(eid)) {
+            return population[eid][cid];
+        }
+        return null;
     }
 
     public <T extends BaseComponent> T getOrCreateComponent(int eid, int cid, Class<T> type) {
@@ -269,18 +280,17 @@ public class World {
 
     public <E> E compIter(int eid, Class<E> clazz) {
         compIterEID = eid;
-        compIterPos = 1;
+        compIterPos = 0;
         compIterType = clazz;
         return (E) compNext();
     }
     
     public <E> E compNext() {
-        while(compIterPos < componentCapacity) {
+        while((++compIterPos) < componentCapacity) {
             Object comp = population[compIterEID][compIterPos];
             if(comp != null && compIterType.isInstance(comp) && CompType.parent[compIterPos] == 0) {
-                return (E) population[compIterEID][compIterPos++];
+                return (E) population[compIterEID][compIterPos];
             }
-            compIterPos++;
         }
 
         return null;

@@ -83,6 +83,7 @@ public class Network {
             ChangeFloppy.class,
             ChangeBootRom.class,
             CharacterGeometry.class,
+            CharacterMode.class,
             CollisionSphere.class,
             ComponentMessage.class,
             Cube3dMap.class,
@@ -137,7 +138,10 @@ public class Network {
         }
     }
 
-    static public class Login extends EventMessage {}
+    static public class Login extends EventMessage {
+        public String name = ClientGlobals.player;
+    }
+    
     static public class Logout extends EventMessage {}
 
     static public class ComponentMessage implements Message {
