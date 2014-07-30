@@ -54,6 +54,7 @@ public class ECSState extends AbstractAppState {
         world.initialize();
 
         ClientGlobals.network.sendLogin();
+        app.getInputManager().setCursorVisible(false);
         //world.getSystem(ClientNetworkSystem.class).sendUseEntity();
     }
 
