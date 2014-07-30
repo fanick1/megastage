@@ -103,7 +103,9 @@ public class NetworkSystem extends Processor {
     }
 
     private void handleLogoutMessage(PlayerConnection connection, Network.Logout packet) {
-        CharacterGeometry cg = (CharacterGeometry) World.INSTANCE.getComponent(connection.player, CompType.CharacterGeometry);
+        world.setComponent(connection.player, CompType.CmdText, CmdText.create("left"));
+
+        CharacterGeometry cg = (CharacterGeometry) world.getComponent(connection.player, CompType.CharacterGeometry);
         cg.isFree = true;
         //world.setComponent(connection.player, CompType.DeleteFlag, new DeleteFlag());
         connection.close();
@@ -115,25 +117,28 @@ public class NetworkSystem extends Processor {
     }
 
     private void initConnection(PlayerConnection connection) {
-        Log.info(connection.nick);
-        for(int eid = characters.iterator(); eid > 0; eid = characters.next()) {
+        int eid = 0;
+        for(eid = characters.iterator(); eid > 0; eid = characters.next()) {
             CharacterGeometry cg = (CharacterGeometry) World.INSTANCE.getComponent(eid, CompType.CharacterGeometry);
-            Log.info(cg.toString());
             if(cg.isFree && cg.name.equalsIgnoreCase(connection.nick)) {
-                selectCharacter(connection, eid);
-                return;
+                break;
             }
         }
 
-        int eid = createNewCharacter(connection);
+        if(eid == 0) {
+            eid = createNewCharacter(connection);
+        }
+        
         selectCharacter(connection, eid);
     }
     
     private void selectCharacter(PlayerConnection connection, int eid) {
         connection.player = eid;
 
-        CharacterGeometry cg = (CharacterGeometry) world.getComponent(connection.player, CompType.CharacterGeometry);
+        CharacterGeometry cg = (CharacterGeometry) world.getComponent(eid, CompType.CharacterGeometry);
         cg.isFree = false;
+
+        world.setComponent(connection.player, CompType.CmdText, CmdText.create("joined"));
 
         connection.sendTCP(new PlayerIDMessage(eid));
     }
