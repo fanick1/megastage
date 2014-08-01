@@ -4,6 +4,14 @@ apply plugin: 'java-library-distribution'
 
 version = '0.53.g'
 
+eclipse{
+	classpath{
+		defaultOutputDir = file('build-eclipse')
+		downloadSources = true
+		downloadJavadoc = true
+	}
+}
+
 jar {
 	archiveName = 'Megastage.jar'
     manifest {
@@ -23,9 +31,10 @@ sourceSets{
 
 task assetsJar(type:Jar){
 	archiveName 'assets.jar'
-	from(sourceSets.assets.resources)
+	from(sourceSets.assets.resources){
+		exclude '**/*.j3odata', '**/*.mesh', '**/*.skeleton', '**/*.mesh.xml', '**/*.skeleton.xml', '**/*.scene', '**/*.material', '**/*.obj', '**/*.mtl', '**/*.3ds', '**/*.dae', '**/*.blend', '**/*.blend*[0-9]'
+	}
 }
-
 
 distributions{
 	main{
@@ -33,12 +42,6 @@ distributions{
 			into('lib'){
 				from{ assetsJar}
 			}
-			from{'world2.xml'}
-			from{'world.xml'}
-			from('media/'){
-				into{'media'}
-			}
-
 		}
 	}
 }
@@ -59,8 +62,9 @@ dependencies {
 	
 	compile 'org.jdom:jdom2:2.0.5'
 	compile 'com.roundtriangles.games:gdx-artemis:0.4'
-	compile 'com.esotericsoftware.kryo:kryo:2.20'
+	compile 'com.esotericsoftware.kryo:kryo:2.24.0'
 	compile 'com.esotericsoftware:jsonbeans:0.7'
+	compile 'com.esotericsoftware.reflectasm:reflectasm:1.09:shaded'
 
 	runtime 'org.slf4j:slf4j-api:1.7.5'
 	runtime 'com.google.guava:guava:12.0'

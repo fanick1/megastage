@@ -5,27 +5,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class World {
-    public static World INSTANCE;
+    public transient static World INSTANCE;
 
     // stores components for each entity
-    public int capacity;
-    public int componentCapacity;
+    public transient int capacity;
+    public transient int componentCapacity;
     public int size;
     public BaseComponent[][] population;
 
     // manages int ids
-    protected int[] next, prev;
-    protected boolean[] free;
+    public int[] next, prev;
+    public boolean[] free;
 
     // manage groups (start using Bag if lot of changes)
-    private Group[] groups = new Group[100];
-    private int groupsSize = 0;
+    private transient Group[] groups = new Group[100];
+    private transient int groupsSize = 0;
 
     // manage systems (start using Bag if lot of changes)
-    private Processor[] processors = new Processor[100];
-    private Map<Class<? extends Processor>, Processor> processorsMap = new HashMap<>();
-;
-    private int processorsSize = 0;
+    private transient Processor[] processors = new Processor[100];
+    private transient Map<Class<? extends Processor>, Processor> processorsMap = new HashMap<>();
+    
+    private transient int processorsSize = 0;
     
     // time management
     public long tickCount = 0;
@@ -130,6 +130,7 @@ public class World {
             throw new RuntimeException("No space for new entity");
         }
 
+        // use free list head
         return createEntity(next[1]);
     }
     
@@ -168,7 +169,7 @@ public class World {
             bc.delete(eid);
         }
 
-        // remove all the references
+        // clean all references
         for(BaseComponent bc = compIter(eid); bc != null; bc = compNext()) {
             population[eid][compIterPos] = null;
             population[eid][CompType.parent[compIterPos]] = null;
@@ -179,7 +180,7 @@ public class World {
         next[prev[eid]] = next[eid];
         free[eid] = true;
         
-        // add eid to free list
+        // append to free list
         next[eid] = 1;
         prev[eid] = prev[1];
         next[prev[1]] = eid;
@@ -259,9 +260,15 @@ public class World {
             groups[i].update(eid);
         }
     }
+    
+    public void updateAll() {
+        for(int eid=eidIter(); eid > 0; eid=eidNext()) {
+            updateEntityInAllGroups(eid);
+        }
+    }
 
     // Here is the single thread iterator
-    private int eidIterPos;
+    private transient int eidIterPos;
 
     public int eidIter() {
         return eidIterPos = next[0];
@@ -271,9 +278,9 @@ public class World {
         return eidIterPos = next[eidIterPos];
     }
 
-    private int compIterEID = 0;
-    private int compIterPos = 0;
-    private Class compIterType;
+    private transient int compIterEID = 0;
+    private transient int compIterPos = 0;
+    private transient Class compIterType;
 
     public BaseComponent compIter(int eid) {
         return compIter(eid, BaseComponent.class);
