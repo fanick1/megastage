@@ -28,5 +28,10 @@ Start megastage by typing:
 
     ./client.sh (linux)
 
-Development server is available in:
-    
+Info on building the *gradle_eclipse* branch:
+
+    ./gradlew distZip 
+
+distribution package is then packed in:
+
+    build/distributions 
